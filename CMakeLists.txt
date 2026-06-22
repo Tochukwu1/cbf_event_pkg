@@ -15,9 +15,10 @@ find_package(Eigen3 REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 
-# Added for Unicycle Yaw extraction (Quaternion math)
+# Added for Unicycle/Holonomic Yaw extraction and TF messaging
 find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
+find_package(tf2_msgs REQUIRED) # <-- Added for Holonomic node
 
 # ---------------------------
 # First executable: cbf_node (Standalone Math / CSV generator)
@@ -63,11 +64,34 @@ target_link_libraries(cbf_event_node
 )
 
 # ---------------------------
+# Third executable: holonomic_cbf_node (Holonomic ROS 2 Node)
+# ---------------------------
+add_executable(holonomic_cbf_node
+  src/holonomic_cbf_node.cpp
+)
+
+target_include_directories(holonomic_cbf_node PUBLIC include)
+target_compile_features(holonomic_cbf_node PUBLIC cxx_std_17)
+
+ament_target_dependencies(holonomic_cbf_node
+  rclcpp
+  geometry_msgs
+  tf2
+  tf2_msgs
+  tf2_geometry_msgs
+)
+
+target_link_libraries(holonomic_cbf_node
+  Eigen3::Eigen
+)
+
+# ---------------------------
 # Install Directives
 # ---------------------------
 install(TARGETS 
   cbf_node 
   cbf_event_node
+  holonomic_cbf_node # <-- Added so launch file can find it
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -88,7 +112,6 @@ if(BUILD_TESTING)
 
   set(ament_cmake_copyright_FOUND TRUE)
   set(ament_cmake_cpplint_FOUND TRUE)
-
 
   ament_lint_auto_find_test_dependencies()
 endif()
